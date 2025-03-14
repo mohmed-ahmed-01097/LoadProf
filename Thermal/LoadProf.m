@@ -70,7 +70,7 @@ end
 %clc;
 disp('Generating Avrage Day Load Profile of each class of houses ...');
 % Init arrays
-class_ZRange    = [10000, 20000, 40000, 30000];
+class_ZRange    = [10000, 10000, 10000, 10000];
 plotdays        = [1, 7, 30, 365];
 linewidths      = [2, 1.5, 1.5, 1];
 
@@ -222,7 +222,7 @@ End_Time = datestr(now);
 % Display the timing information
 disp(['Start Time: ' Start_Time]);
 disp(['End Time: ' End_Time]);
-disp(['Total Time: ' num2str(endTime) ' seconds']);
+disp(['Total Time: ' string(duration(0, 0, endTime))]);
 
 %%
 %==============================================================================================================================================
@@ -284,8 +284,8 @@ end
 function [numFamilyMembers, applianceCounts, applianceUsages, houseClass, hourlyHouseUsages] = ...
     loadprof_GenerateData(numHouses, applianceNum, houresNum, percentageRange, Prop_Struct, TempratureReads)
 
-applianceRanges = reshape(mat2cell(permute(reshape(cell2mat(Prop_Struct.Range)', 2, 16, 3), [1 2 3]), 2, ones(1, 16), ones(1, 3)), [16, 3]);
-powerRatings    = reshape(mat2cell(permute(reshape(cell2mat(Prop_Struct.Rate )', 2, 16, 3), [1 2 3]), 2, ones(1, 16), ones(1, 3)), [16, 3]);
+applianceRanges = reshape(mat2cell(permute(reshape(cell2mat(Prop_Struct.Range)', 2, 4, 3), [1 2 3]), 2, ones(1, 4), ones(1, 3)), [4, 3]);
+powerRatings    = reshape(mat2cell(permute(reshape(cell2mat(Prop_Struct.Rate )', 2, 4, 3), [1 2 3]), 2, ones(1, 4), ones(1, 3)), [4, 3]);
 
 % Initialize tables for appliance count
 applianceCounts   = zeros(numHouses, applianceNum);
@@ -329,10 +329,10 @@ for i = 1:numHouses
 %         
         appliancePropability = arrayfun(@(x) ...
             double(rand <= Prop_Struct.Prop{x}(hourIndex, dayIndex)) * ((randi([int32(Prop_Struct.Prop{x}(hourIndex, dayIndex) * 100), 100]) / 100) ...
-            + (double((sign(TempIndex - temperatureSetPoint) * Prop_Struct.Temp(x)) > 0) * abs(TempIndex - temperatureSetPoint)/temperatureSetPoint)) ...
+            + (double((sign(TempIndex - temperatureSetPoint) * Prop_Struct.Temp(x)) > 0) * abs(TempIndex - temperatureSetPoint)/temperatureSetPoint / 100)) ...
             , 1:applianceNum);
         
-        appliancePropability(16) = appliancePropability(16) + MemberOverLoad;
+        appliancePropability(4) = appliancePropability(4) + MemberOverLoad;
         
         appliancePropability = arrayfun(@(x) applianceUsages(i, x) * appliancePropability(x) * (Prop_Struct.TimeCycle(x)/60), 1:applianceNum);
         
@@ -414,7 +414,9 @@ function [] = loadprof_saveSurf(X_min, X_max, Y_min, Y_max, Z_min, Z_max, Data, 
 fontSize = 16;
 fontWeight = 'bold';
 lineWidth  = 2;
-
+if(min(min(Data)) < 0)
+    Z_min = min(min(Data));
+end
 figure('WindowState', 'maximized');
 
 [X, Y] = meshgrid(X_min:X_max,Y_min:Y_max);
@@ -447,7 +449,9 @@ function [] = loadprof_saveSurfSub(X_min, X_max, Y_min, Y_max, Z_min, Z_max, Dat
 fontSize = 16;
 fontWeight = 'bold';
 lineWidth  = 2;
-
+if(min(min(Data)) < 0)
+    Z_min = min(min(Data));
+end
 figure('WindowState', 'maximized');
 
 [X, Y] = meshgrid(X_min:X_max,Y_min:Y_max);
